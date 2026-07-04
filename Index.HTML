@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Muévete SD — Transporte Urbano de Santo Domingo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230B1B33'/%3E%3Ccircle cx='11' cy='21' r='3' fill='%23FFB020'/%3E%3Ccircle cx='21' cy='21' r='3' fill='%23FFB020'/%3E%3Crect x='6' y='8' width='20' height='11' rx='3' fill='%232BB3A3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-950:#0B1B33;
+    --navy-900:#12233F;
+    --navy-800:#1A2E4F;
+    --amber-500:#FFB020;
+    --teal-400:#2BB3A3;
+    --paper-100:#F3F1EA;
+    --ink-100:#EDEBE3;
+    --ink-060:#B9C2D4;
+    --ink-900:#1B2431;
+    --radius-lg:16px;
+    --radius-md:10px;
+    --ease:cubic-bezier(0.22,1,0.36,1);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(43,179,163,0.12), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 0%, rgba(255,176,32,0.08), transparent 55%),
+      var(--navy-950);
+    color:var(--ink-100);
+    font-family:'Inter',sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:800;
+    letter-spacing:0.02em;
+    margin:0 0 0.4em;
+  }
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  a{color:var(--amber-500);}
+  img{max-width:100%;display:block;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
+
+  /* HEADER + LÍNEA DE RUTA NAV */
+  header{
+    position:sticky;top:0;z-index:10;
+    background:rgba(11,27,51,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--navy-800);
+    padding:18px 0 0;
+    box-shadow:0 8px 24px rgba(0,0,0,0.25);
+  }
+  .brand{display:flex;align-items:baseline;gap:10px;padding-bottom:14px;}
+  .brand h1{font-size:1.6rem;color:var(--paper-100);}
+  .brand span{color:var(--teal-400);font-size:0.85rem;font-family:'IBM Plex Mono',monospace;}
+
+  .linea-ruta{position:relative;display:flex;justify-content:space-between;padding:0 0 18px;}
+  .linea-ruta::before{
+    content:"";position:absolute;top:9px;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--teal-400),var(--amber-500));
+    border-radius:3px;
+  }
+  .tren{
+    position:absolute;top:5px;left:0;width:11px;height:11px;border-radius:50%;
+    background:var(--paper-100);box-shadow:0 0 10px 2px rgba(243,241,234,0.7);
+    animation:recorrer 8s linear infinite;
+  }
+  @keyframes recorrer{
+    0%{left:0;}
+    48%{left:calc(100% - 11px);}
+    50%{left:calc(100% - 11px);}
+    98%{left:0;}
+    100%{left:0;}
+  }
+  .parada{position:relative;flex:1;text-align:center;text-decoration:none;color:var(--ink-060);font-size:0.78rem;transition:color 0.2s var(--ease);}
+  .parada .punto{
+    width:20px;height:20px;border-radius:50%;background:var(--navy-950);
+    border:3px solid var(--amber-500);margin:0 auto 6px;
+    transition:background 0.2s var(--ease),transform 0.2s var(--ease);
+  }
+  .parada:hover{color:var(--paper-100);}
+  .parada:hover .punto{background:var(--amber-500);transform:scale(1.15);}
+  .parada.activo{color:var(--paper-100);}
+  .parada.activo .punto{background:var(--teal-400);border-color:var(--teal-400);}
+
+  /* HERO */
+  .hero{padding:72px 0 56px;display:grid;grid-template-columns:1.1fr 0.9fr;gap:40px;align-items:center;}
+  .hero h2{font-size:3.2rem;color:var(--paper-100);line-height:1.08;}
+  .hero .accent{color:var(--amber-500);}
+  .hero p{color:var(--ink-060);font-size:1.05rem;max-width:46ch;}
+  .stats{display:flex;gap:28px;margin-top:28px;}
+  .stats div{font-family:'IBM Plex Mono',monospace;}
+  .stats b{display:block;font-size:1.8rem;color:var(--teal-400);}
+  .stats span{font-size:0.75rem;color:var(--ink-060);}
+  .hero-visual{
+    position:relative;overflow:hidden;
+    background:linear-gradient(160deg,var(--navy-900),var(--navy-800));
+    border:1px solid var(--navy-800);border-radius:var(--radius-lg);
+    padding:32px;text-align:center;
+    box-shadow:0 20px 50px rgba(0,0,0,0.35);
+  }
+  .hero-visual::before{
+    content:"";position:absolute;inset:0;
+    background-image:radial-gradient(rgba(185,194,212,0.12) 1px, transparent 1px);
+    background-size:16px 16px;
+    -webkit-mask-image:linear-gradient(180deg,black,transparent 75%);
+    mask-image:linear-gradient(180deg,black,transparent 75%);
+  }
+  .hero-visual img{position:relative;margin:0 auto;filter:drop-shadow(0 12px 20px rgba(0,0,0,0.4));}
+  .hero-visual p{position:relative;}
+
+  section{padding:64px 0;border-top:1px solid var(--navy-800);}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;color:var(--teal-400);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+  .eyebrow .num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:20px;height:20px;border-radius:50%;border:1px solid var(--teal-400);
+    font-size:0.68rem;color:var(--teal-400);
+  }
+  section h2{font-size:2.1rem;color:var(--paper-100);}
+  .lead{color:var(--ink-060);max-width:70ch;}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:28px;}
+  ul,ol{color:var(--ink-100);padding-left:20px;}
+  li{margin-bottom:6px;}
+  mark{background:var(--amber-500);color:var(--navy-950);padding:0 4px;border-radius:3px;}
+
+  table{width:100%;border-collapse:separate;border-spacing:0;margin-top:20px;font-family:'IBM Plex Mono',monospace;font-size:0.9rem;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--navy-800);}
+  caption{text-align:left;color:var(--ink-060);font-family:'Inter',sans-serif;margin-bottom:8px;font-size:0.85rem;caption-side:top;}
+  th,td{border-bottom:1px solid var(--navy-800);padding:12px 14px;text-align:left;}
+  th{background:var(--navy-900);color:var(--amber-500);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+  tr:nth-child(even) td{background:rgba(255,255,255,0.02);}
+  tbody tr{transition:background 0.15s var(--ease);}
+  tbody tr:hover td{background:rgba(43,179,163,0.08);}
+
+  .resumen{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px;}
+  .card{
+    background:var(--navy-900);border:1px solid var(--navy-800);border-radius:var(--radius-md);
+    padding:18px;transition:transform 0.25s var(--ease),box-shadow 0.25s var(--ease),border-color 0.25s var(--ease);
+  }
+  .card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,0.3);border-color:var(--teal-400);}
+  .card b{display:block;font-size:1.5rem;color:var(--teal-400);font-family:'IBM Plex Mono',monospace;}
+  .card span{font-size:0.78rem;color:var(--ink-060);}
+
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity 0.6s var(--ease),transform 0.6s var(--ease);}
+  .reveal.visible{opacity:1;transform:translateY(0);}
+
+  form{background:var(--navy-900);border:1px solid var(--navy-800);border-radius:var(--radius-lg);padding:28px;margin-top:24px;max-width:520px;box-shadow:0 16px 40px rgba(0,0,0,0.25);}
+  form label{display:block;font-size:0.85rem;color:var(--ink-060);margin:14px 0 6px;}
+  form input[type="text"],form input[type="email"],form select{
+    width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--navy-800);
+    background:var(--navy-950);color:var(--ink-100);font-family:'Inter',sans-serif;
+    transition:border-color 0.2s var(--ease),box-shadow 0.2s var(--ease);
+  }
+  form input[type="text"]:focus,form input[type="email"]:focus,form select:focus{
+    outline:none;border-color:var(--teal-400);box-shadow:0 0 0 3px rgba(43,179,163,0.25);
+  }
+  .radios{display:flex;gap:18px;flex-wrap:wrap;font-size:0.9rem;color:var(--ink-100);}
+  .radios label{display:flex;align-items:center;gap:6px;margin:0;color:var(--ink-100);}
+  .check{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:0.9rem;}
+  button{
+    margin-top:20px;background:var(--amber-500);color:var(--navy-950);border:none;
+    padding:12px 24px;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;
+    transition:background 0.2s var(--ease),transform 0.1s var(--ease);
+  }
+  button:hover{background:var(--teal-400);}
+  button:active{transform:scale(0.97);}
+  button:focus-visible{outline:2px solid var(--paper-100);outline-offset:2px;}
+  #confirmacion{margin-top:14px;color:var(--teal-400);font-family:'IBM Plex Mono',monospace;font-size:0.85rem;display:none;}
+
+  footer{padding:40px 0;text-align:center;color:var(--ink-060);font-size:0.85rem;border-top:1px solid var(--navy-800);}
+  footer a{color:var(--teal-400);}
+
+  a:focus-visible,.parada:focus-visible{outline:2px solid var(--teal-400);outline-offset:3px;border-radius:4px;}
+
+  @media (max-width:780px){
+    .hero{grid-template-columns:1fr;}
+    .grid-2{grid-template-columns:1fr;}
+    .resumen{grid-template-columns:repeat(2,1fr);}
+    .linea-ruta{overflow-x:auto;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    .tren{animation:none;display:none;}
+    .reveal{opacity:1;transform:none;transition:none;}
+    .card,.parada .punto,button,form input,form select{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <h1>Muévete SD</h1>
+      <span>// transporte urbano · Santo Domingo</span>
+    </div>
+    <nav class="linea-ruta" aria-label="Navegación principal">
+      <span class="tren" aria-hidden="true"></span>
+      <a class="parada" href="#inicio"><span class="punto"></span>Inicio</a>
+      <a class="parada" href="#html"><span class="punto"></span>Sobre HTML</a>
+      <a class="parada" href="#rutas"><span class="punto"></span>Rutas</a>
+      <a class="parada" href="#datos"><span class="punto"></span>Datos</a>
+      <a class="parada" href="#horarios"><span class="punto"></span>Horarios</a>
+      <a class="parada" href="#contacto"><span class="punto"></span>Contacto</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO / INICIO -->
+  <section id="inicio" style="border-top:none;">
+    <div class="wrap hero">
+      <div>
+        <h2>El transporte urbano de <span class="accent">Santo Domingo</span>, en un solo lugar.</h2>
+        <p>Consulta rutas, horarios y tarifas del Metro, el Teleférico y las líneas de autobús de la ciudad. Un mini sitio hecho con HTML5, CSS y JavaScript para el tema <strong>Transporte urbano</strong>.</p>
+        <div class="stats">
+          <div><b>5</b><span>rutas activas</span></div>
+          <div><b>2</b><span>líneas de Metro</span></div>
+          <div><b>24h</b><span>información actualizada</span></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20240%20160'%3E%3Crect%20x='20'%20y='40'%20width='200'%20height='80'%20rx='16'%20fill='%232BB3A3'/%3E%3Crect%20x='38'%20y='56'%20width='45'%20height='30'%20rx='4'%20fill='%230B1B33'/%3E%3Crect%20x='98'%20y='56'%20width='45'%20height='30'%20rx='4'%20fill='%230B1B33'/%3E%3Crect%20x='158'%20y='56'%20width='40'%20height='30'%20rx='4'%20fill='%230B1B33'/%3E%3Ccircle%20cx='60'%20cy='128'%20r='14'%20fill='%23FFB020'/%3E%3Ccircle%20cx='180'%20cy='128'%20r='14'%20fill='%23FFB020'/%3E%3C/svg%3E" alt="Ilustración de un autobús urbano visto de lado, con ventanas y dos ruedas">
+        <p class="mono" style="color:var(--ink-060);font-size:0.8rem;margin-top:14px;">Ruta 27 · Independencia → Centro</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4.1 CONCEPTOS DE HTML -->
+  <section id="html">
+    <div class="wrap reveal">
+      <span class="eyebrow"><span class="num">02</span>4.1 — Conceptos, funciones y características</span>
+      <h2>¿Qué es HTML y para qué sirve aquí?</h2>
+      <p class="lead"><strong>HTML</strong> (HyperText Markup Language) es el lenguaje de marcado que define la <em>estructura y el significado</em> del contenido de una página web: qué es un título, qué es una lista, qué es una tabla o un enlace. No se encarga del diseño visual (eso lo hace CSS) ni del comportamiento (eso lo hace JavaScript), pero sin HTML no hay página que mostrar.</p>
+
+      <div class="grid-2">
+        <div>
+          <h3 style="font-size:1.3rem;color:var(--paper-100);">Aplicado al transporte urbano</h3>
+          <p>En este sitio, HTML permite <mark>organizar</mark> la información propia del tema:</p>
+          <ul>
+            <li>Cada <strong>ruta</strong> como un elemento de lista o fila de tabla.</li>
+            <li>Los <strong>horarios y tarifas</strong> en tablas con encabezados claros.</li>
+            <li>Un <strong>formulario</strong> para que el usuario consulte o reserve un viaje.</li>
+            <li>Enlaces internos para moverse entre secciones, como transbordar entre líneas.</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size:1.3rem;color:var(--paper-100);">Características de HTML usadas</h3>
+          <ol>
+            <li>Etiquetas semánticas (<span class="mono">header, nav, main, section, footer</span>).</li>
+            <li>Jerarquía de contenido con encabezados <span class="mono">h1–h3</span>.</li>
+            <li>Listas ordenadas y no ordenadas para pasos y ventajas.</li>
+            <li>Tablas para datos tabulares (horarios, tarifas).</li>
+            <li>Formularios para recibir datos del usuario.</li>
+            <li>Integración con JavaScript para procesar información.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4.3 ETIQUETAS, LISTAS, IMÁGENES Y VÍNCULOS -->
+  <section id="rutas">
+    <div class="wrap reveal">
+      <span class="eyebrow"><span class="num">03</span>4.3 — Etiquetas, formato, listas, imágenes y vínculos</span>
+      <h2>Rutas y ventajas del transporte público</h2>
+      <p class="lead">Movilizarse en transporte público reduce el tráfico y la contaminación, y suele ser <mark>más económico</mark> que el vehículo particular.</p>
+
+      <div class="grid-2">
+        <div>
+          <h3 style="font-size:1.3rem;color:var(--paper-100);">Ventajas de usar transporte público</h3>
+          <ul>
+            <li>Menor costo por viaje frente al carro propio.</li>
+            <li>Reduce la congestión vehicular en horas pico.</li>
+            <li><em>Menor huella de carbono</em> por pasajero transportado.</li>
+            <li>Rutas fijas que facilitan planificar el tiempo de viaje.</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size:1.3rem;color:var(--paper-100);">Pasos para usar la tarjeta MetroCard</h3>
+          <ol>
+            <li>Adquiere tu tarjeta en una estación del Metro.</li>
+            <li>Recárgala con el monto que necesites.</li>
+            <li>Pasa la tarjeta por el lector al entrar a la estación.</li>
+            <li>Aborda el vagón y desciende en tu parada.</li>
+          </ol>
+        </div>
+      </div>
+
+      <p style="margin-top:24px;">Más información oficial en la <a href="https://es.wikipedia.org/wiki/Metro_de_Santo_Domingo" target="_blank" rel="noopener">página de Wikipedia sobre el Metro de Santo Domingo</a> (enlace externo) o vuelve al <a href="#inicio">inicio del sitio</a> (enlace interno).</p>
+    </div>
+  </section>
+
+  <!-- 4.4 VECTORES PARALELOS -->
+  <section id="datos">
+    <div class="wrap reveal">
+      <span class="eyebrow"><span class="num">04</span>4.4 — Vectores paralelos y operaciones</span>
+      <h2>Datos de las rutas (procesados con JavaScript)</h2>
+      <p class="lead">Tres vectores paralelos —<span class="mono">rutas</span>, <span class="mono">distanciasKm</span> y <span class="mono">tarifasRD</span>— guardan la información de cada ruta en la misma posición del arreglo. JavaScript recorre los vectores para calcular totales, promedios y máximos, y muestra el resultado en la tabla de abajo.</p>
+
+      <div class="resumen" id="resumenVectores"></div>
+
+      <table id="tablaVectores">
+        <caption>Tabla generada dinámicamente a partir de los vectores paralelos</caption>
+        <thead>
+          <tr><th>#</th><th>Ruta</th><th>Distancia (km)</th><th>Tarifa (RD$)</th></tr>
+        </thead>
+        <tbody><!-- filas insertadas por JavaScript --></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 4.5 TABLAS Y FORMULARIOS -->
+  <section id="horarios">
+    <div class="wrap reveal">
+      <span class="eyebrow"><span class="num">05</span>4.5 — Tablas y formularios</span>
+      <h2>Horarios y formulario de consulta</h2>
+      <p class="lead">Consulta el horario de servicio de cada ruta y usa el formulario para solicitar información o reservar un viaje.</p>
+
+      <table>
+        <caption>Horario de servicio por ruta</caption>
+        <thead>
+          <tr><th>Ruta</th><th>Horario</th><th>Frecuencia</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Ruta 27 · Independencia</td><td>5:30 a. m. – 11:00 p. m.</td><td>Cada 10 min</td></tr>
+          <tr><td>Ruta 44 · Máximo Gómez</td><td>5:00 a. m. – 10:30 p. m.</td><td>Cada 12 min</td></tr>
+          <tr><td>Metro Línea 1</td><td>6:00 a. m. – 10:00 p. m.</td><td>Cada 5 min</td></tr>
+          <tr><td>Metro Línea 2</td><td>6:00 a. m. – 10:00 p. m.</td><td>Cada 5 min</td></tr>
+          <tr><td>OMSA Circunvalación</td><td>5:30 a. m. – 9:30 p. m.</td><td>Cada 15 min</td></tr>
+        </tbody>
+      </table>
+
+      <form id="formConsulta" aria-label="Formulario de consulta de ruta">
+        <h3 style="font-size:1.2rem;color:var(--paper-100);margin-top:0;">Consulta o reserva tu viaje</h3>
+
+        <label for="nombre">Nombre completo</label>
+        <input type="text" id="nombre" name="nombre" placeholder="Escribe tu nombre" required>
+
+        <label for="correo">Correo electrónico</label>
+        <input type="email" id="correo" name="correo" placeholder="tucorreo@ejemplo.com" required>
+
+        <label for="ruta">Selecciona tu ruta</label>
+        <select id="ruta" name="ruta">
+          <option value="">-- Elige una ruta --</option>
+          <option>Ruta 27 · Independencia</option>
+          <option>Ruta 44 · Máximo Gómez</option>
+          <option>Metro Línea 1</option>
+          <option>Metro Línea 2</option>
+          <option>OMSA Circunvalación</option>
+        </select>
+
+        <label>Tipo de pasajero</label>
+        <div class="radios">
+          <label><input type="radio" name="tipo" value="Regular" checked> Regular</label>
+          <label><input type="radio" name="tipo" value="Estudiante"> Estudiante</label>
+          <label><input type="radio" name="tipo" value="Envejeciente"> Envejeciente</label>
+        </div>
+
+        <div class="check">
+          <input type="checkbox" id="transbordo" name="transbordo">
+          <label for="transbordo" style="margin:0;">Necesito transbordo a otra ruta</label>
+        </div>
+
+        <button type="submit">Enviar consulta</button>
+        <p id="confirmacion">✓ Consulta enviada. ¡Gracias! Te contactaremos pronto.</p>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer id="contacto" class="wrap">
+  <p>Muévete SD — proyecto académico para la Unidad 4: Lenguaje HTML.</p>
+  <p>Contacto: <a href="mailto:info@muevetesd.example">info@muevetesd.example</a> · <a href="#inicio">Volver al inicio</a></p>
+</footer>
+
+<script>
+  // ---- 4.4 Vectores paralelos ----
+  const rutas = ["Ruta 27 · Independencia", "Ruta 44 · Máximo Gómez", "Metro Línea 1", "Metro Línea 2", "OMSA Circunvalación"];
+  const distanciasKm = [12.5, 9.8, 14.5, 20.3, 16.7];
+  const tarifasRD = [40, 40, 20, 20, 25];
+
+  // Operación 1: total de tarifas
+  let totalTarifas = 0;
+  for (let i = 0; i < tarifasRD.length; i++) {
+    totalTarifas += tarifasRD[i];
+  }
+
+  // Operación 2: promedio de distancia
+  let sumaDistancias = 0;
+  for (let i = 0; i < distanciasKm.length; i++) {
+    sumaDistancias += distanciasKm[i];
+  }
+  const promedioDistancia = (sumaDistancias / distanciasKm.length).toFixed(1);
+
+  // Operación 3: ruta con mayor distancia
+  let indiceMayor = 0;
+  for (let i = 1; i < distanciasKm.length; i++) {
+    if (distanciasKm[i] > distanciasKm[indiceMayor]) {
+      indiceMayor = i;
+    }
+  }
+
+  // Operación 4: cantidad de rutas registradas
+  const cantidadRutas = rutas.length;
+
+  // Mostrar resumen en tarjetas
+  const resumen = document.getElementById("resumenVectores");
+  resumen.innerHTML = `
+    <div class="card"><b>${cantidadRutas}</b><span>rutas registradas</span></div>
+    <div class="card"><b>RD$ ${totalTarifas}</b><span>suma de tarifas</span></div>
+    <div class="card"><b>${promedioDistancia} km</b><span>distancia promedio</span></div>
+    <div class="card"><b>${rutas[indiceMayor]}</b><span>ruta más larga (${distanciasKm[indiceMayor]} km)</span></div>
+  `;
+
+  // Mostrar resultados en la tabla HTML
+  const cuerpoTabla = document.querySelector("#tablaVectores tbody");
+  for (let i = 0; i < rutas.length; i++) {
+    const fila = document.createElement("tr");
+    fila.innerHTML = `<td>${i + 1}</td><td>${rutas[i]}</td><td>${distanciasKm[i]}</td><td>${tarifasRD[i]}</td>`;
+    cuerpoTabla.appendChild(fila);
+  }
+
+  // ---- 4.5 Formulario ----
+  const formulario = document.getElementById("formConsulta");
+  const confirmacion = document.getElementById("confirmacion");
+  formulario.addEventListener("submit", function (evento) {
+    evento.preventDefault();
+    confirmacion.style.display = "block";
+    formulario.reset();
+  });
+
+  // ---- Efecto de aparición al hacer scroll ----
+  const elementosReveal = document.querySelectorAll(".reveal");
+  const observadorReveal = new IntersectionObserver((entradas) => {
+    entradas.forEach((entrada) => {
+      if (entrada.isIntersecting) {
+        entrada.target.classList.add("visible");
+        observadorReveal.unobserve(entrada.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  elementosReveal.forEach((el) => observadorReveal.observe(el));
+
+  // ---- Parada activa en el menú según la sección visible ----
+  const secciones = document.querySelectorAll("main section, footer#contacto");
+  const paradas = document.querySelectorAll(".parada");
+  const observadorNav = new IntersectionObserver((entradas) => {
+    entradas.forEach((entrada) => {
+      if (entrada.isIntersecting) {
+        paradas.forEach((p) => p.classList.remove("activo"));
+        const activo = document.querySelector(`.parada[href="#${entrada.target.id}"]`);
+        if (activo) activo.classList.add("activo");
+      }
+    });
+  }, { rootMargin: "-45% 0px -45% 0px" });
+  secciones.forEach((s) => observadorNav.observe(s));
+</script>
+
+</body>
+</html>
